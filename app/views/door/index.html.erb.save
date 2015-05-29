@@ -1,0 +1,88 @@
+<% content_for :header_tags do %>
+	<%= javascript_include_tag 'd3.min.js', :plugin => 'portunes' %>
+	<%= javascript_include_tag 'cal-heatmap.js', :plugin => 'portunes' %>
+	<%= stylesheet_link_tag 'cal-heatmap.css', :plugin => 'portunes' %>
+<% end %>
+
+<% html_title "Portunes" %>
+
+<h2>Portunes Door Control</h2>
+
+	<% data = Hash.new %>
+<% @users.each do |user| %>
+
+	<% if user.status != 0 && user.admin != TRUE %>
+	<div style="border-style: solid; border-radius:25px; width: auto; margin-bottom:5px; align:center;">
+		<b
+
+		<div style="background-color: #ecf5e2; width: 650px; font-size: 15px; margin-left: 10px;">Name: <b><%= user.firstname+" "+user.lastname %></b> || Card No: <%= user.custom_value_for(1)%></div>
+		<br><br>
+		<% data = Hash.new %>
+			<% @doors.each do |d| %>
+
+				<% if user.custom_value_for(3).to_s == d.card_no %>
+
+					<% timekeeper = d.ext_time.to_s(:time).to_i - d.ent_time.to_s(:time).to_i %>
+					<% data[d.ent_time.to_i] = timekeeper %>
+
+
+				<% end %>
+			<% end %>
+		<!-- Print Cal-heatmap -->
+		<div style="margin-left: 20px">
+		<button id="<%= user.lastname%>-previous" style="margin-bottom: 10px;" class="btn">Previous</button>
+		<button id="<%= user.lastname%>-next" style="margin-bottom: 10px;" class="btn">Next</button><br>
+	</div>
+		<div id="<%= user.lastname %>-data" style="padding:0 0 20px 20px;"></div>
+		<%= javascript_tag do %>
+		(function() {
+
+			var cal = new CalHeatMap();
+
+			var selectorid = "#<%= user.lastname%>-data"
+			cal.init({
+				itemSelector: selectorid,
+				domain: "month",
+				subDomain: "x_day",
+				cellSize: 15,
+				domainDynamicDimension: false,
+				subDomainTextFormat: "%d",
+				cellPadding: 3,
+				domainGutter: 10,
+				range: 5, legend: [2,4,6,8,10],
+				highlight: "now",
+				previousSelector: "#<%= user.lastname%>-previous",
+				nextSelector: "#<%= user.lastname%>-next",
+				tooltip: true,
+				data: <%= raw data.to_json %>,
+
+				itemName: ["hour", "hours"],
+				subDomainTitleFormat: {
+					empty: "No Data Found {date}",
+					filled: "{count} {name} at {date}"
+				},
+
+
+				label: {
+					position: "top"
+				},
+
+				legendColors: {
+					min: "#ecf5e2",
+					max: "#232181",
+					empty: "red",
+					// Will use the CSS for the missing keys
+				},
+
+
+
+			});
+			cal.previous(4);
+
+		})();
+		<% end %>
+
+
+</div>
+	<% end %>
+<% end %>

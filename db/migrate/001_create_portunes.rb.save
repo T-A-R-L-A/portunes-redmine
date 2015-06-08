@@ -1,9 +1,0 @@
-tclass CreatePortunes < ActiveRecord::Migration
-  def change
-    create_table :portunes do |t|
-
-
-    end
-
-  end
-end
